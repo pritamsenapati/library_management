@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block title %}Borrow {{ book.title }}{% endblock %}
+{% block content %}
+<section class="form-page checkout-page">
+  <a class="back-link" href="{{ url_for('index') }}">← Back to the collection</a>
+  <div class="checkout-layout">
+    <div class="form-card">
+      <span class="eyebrow">ONE QUICK CHECKOUT DETAIL</span>
+      <h1>Before this book goes home with you.</h1>
+      <p class="auth-intro">Please confirm a phone number and contact address for this loan. We’ll save these details with your checkout so the library can reach you about the book.</p>
+      <form method="post" class="form-stack">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <label>Contact name<input name="contact_name" autocomplete="name" required maxlength="100" value="{{ request.form.get('contact_name', previous_contact.contact_name if previous_contact else current_user.name) }}"></label>
+        <label>Phone number<input name="phone" type="tel" autocomplete="tel" inputmode="tel" placeholder="+1 555 123 4567" required maxlength="30" value="{{ request.form.get('phone', previous_contact.phone if previous_contact else '') }}"><span class="field-help">Include your country code if applicable.</span></label>
+        <label>Contact address<textarea name="address" autocomplete="street-address" rows="3" placeholder="Street, city, postal code" required maxlength="1000">{{ request.form.get('address', previous_contact.address if previous_contact else '') }}</textarea></label>
+        <p class="privacy-note">These contact details are saved with this loan and are visible to library administrators for checkout support.</p>
+        <button class="button auth-submit" type="submit">Confirm and borrow <span>→</span></button>
+      </form>
+    </div>
+    <aside class="checkout-book">
+      <div class="book-cover cover-2 {{ 'has-cover' if book.isbn else '' }}">
+        {% if book.isbn %}<img class="book-cover-image" src="https://covers.openlibrary.org/b/isbn/{{ book.isbn }}-M.jpg?default=false" alt="Front cover of {{ book.title }}" onerror="this.parentElement.classList.remove('has-cover');this.remove();">{% endif %}
+        <span class="cover-category">{{ book.category }}</span><div class="cover-title">{{ book.title }}</div><div class="cover-rule"></div><div class="cover-author">{{ book.author }}</div>
+      </div>
+      <span class="eyebrow">YOUR CHECKOUT</span>
+      <h2>{{ book.title }}</h2><p>by {{ book.author }}</p>
+      <div class="checkout-summary"><span>Loan period</span><strong>21 days</strong></div>
+    </aside>
+  </div>
+</section>
+{% endblock %}

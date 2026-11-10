@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f7f5ef">
+  <title>{% block title %}The Reading Room{% endblock %} · Library</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='covers.css') }}">
+  <script defer src="{{ url_for('static', filename='app.js') }}"></script>
+</head>
+<body>
+  <header class="site-header">
+    <div class="nav-wrap">
+      <a class="brand" href="{{ url_for('index') }}"><span class="brand-mark">R</span><span>The Reading Room<small>COMMUNITY LIBRARY</small></span></a>
+      <button class="menu-toggle" type="button" aria-label="Toggle navigation" aria-expanded="false">☰</button>
+      <nav class="main-nav" aria-label="Main navigation">
+        <a href="{{ url_for('index') }}" class="{{ 'active' if request.endpoint == 'index' else '' }}">Discover</a>
+        {% if current_user.is_authenticated %}<a href="{{ url_for('my_loans') }}" class="{{ 'active' if request.endpoint == 'my_loans' else '' }}">My books</a>{% endif %}
+        {% if current_user.is_authenticated and current_user.role == 'admin' %}<a href="{{ url_for('admin_loans') }}">Loans</a>{% endif %}
+      </nav>
+      <div class="nav-actions">
+        {% if current_user.is_authenticated %}
+          <span class="nav-greeting">Hello, {{ current_user.name.split()[0] }}</span>
+          {% if current_user.role == 'admin' %}<a class="button button-small button-outline" href="{{ url_for('add_book') }}">＋ Add a book</a>{% endif %}
+          <form action="{{ url_for('logout') }}" method="post"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="text-button" type="submit">Sign out</button></form>
+        {% else %}
+          <a class="text-button" href="{{ url_for('login') }}">Sign in</a><a class="button button-small" href="{{ url_for('signup') }}">Join the library <span>↗</span></a>
+        {% endif %}
+      </div>
+    </div>
+  </header>
+  <main>
+    {% with messages = get_flashed_messages(with_categories=true) %}{% if messages %}<div class="flash-stack">{% for category, message in messages %}<div class="flash flash-{{ category }}" role="status">{{ message }}<button type="button" aria-label="Dismiss" class="flash-close">×</button></div>{% endfor %}</div>{% endif %}{% endwith %}
+    {% block content %}{% endblock %}
+  </main>
+  <footer class="site-footer"><div class="footer-inner"><a class="brand footer-brand" href="{{ url_for('index') }}"><span class="brand-mark">R</span><span>The Reading Room<small>COMMUNITY LIBRARY</small></span></a><p>A little more wonder, one page at a time. Cover images via <a href="https://openlibrary.org" target="_blank" rel="noopener">Open Library</a>.</p><span>© {{ 2026 }} The Reading Room</span></div></footer>
+</body>
+</html>
