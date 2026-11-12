@@ -91,7 +91,7 @@ def load_user(user_id):
 
 @app.context_processor
 def inject_today():
-    return {"today": date.today()}
+    return {"today": date.today(), "timedelta": timedelta}
 
 
 def admin_required(view):
@@ -107,17 +107,31 @@ def admin_required(view):
 @app.route("/")
 def index():
     term = request.args.get("q", "").strip()
+    categories = [row[0] for row in db.session.query(Book.category).distinct().order_by(Book.category).all()]
+    selected_category = request.args.get("category", "").strip()
+    if selected_category not in categories:
+        selected_category = ""
+
     query = Book.query
     if term:
         pattern = f"%{term}%"
         query = query.filter(or_(Book.title.ilike(pattern), Book.author.ilike(pattern), Book.category.ilike(pattern)))
+    if selected_category:
+        query = query.filter(Book.category == selected_category)
     books = query.order_by(Book.title).all()
     stats = {
         "titles": Book.query.count(),
         "members": User.query.filter_by(role="member").count(),
         "loans": Loan.query.filter_by(status="borrowed").count(),
     }
-    return render_template("index.html", books=books, stats=stats, term=term)
+    return render_template(
+        "index.html",
+        books=books,
+        stats=stats,
+        term=term,
+        categories=categories,
+        selected_category=selected_category,
+    )
 
 
 @app.route("/signup", methods=["GET", "POST"])

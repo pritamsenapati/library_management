@@ -1,18 +1,274 @@
-.book-cover-image{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center top}
-.book-cover.has-cover>.cover-category,.book-cover.has-cover>.cover-title,.book-cover.has-cover>.cover-rule,.book-cover.has-cover>.cover-author,.book-cover.has-cover>.cover-number,.loan-cover.has-cover>span{display:none}
-.loan-cover.has-cover{position:relative;padding:0;overflow:hidden}
-.borrow-button[aria-disabled="true"]{background:#aaa99c;border-color:#aaa99c;cursor:not-allowed}
-.checkout-layout{display:grid;grid-template-columns:minmax(0,1fr) 235px;gap:24px;align-items:start;margin-top:18px}
-.checkout-layout .form-card{margin-top:0}
-.checkout-book{background:#fdfcf7;border:1px solid var(--line);padding:18px;position:sticky;top:18px}
-.checkout-book .book-cover{height:250px;margin-bottom:17px}
-.checkout-book h2{font:500 19px/1.25 var(--serif);margin:7px 0 2px}
-.checkout-book>p{font-size:11px;color:var(--muted);margin:0 0 15px}
-.checkout-summary{border-top:1px solid var(--line);padding-top:10px;display:flex;justify-content:space-between;font-size:10px;color:var(--muted)}
-.checkout-summary strong{color:var(--green)}
-.field-help{font-size:9px;color:var(--muted);font-weight:400}
-.privacy-note{margin:0;color:var(--muted);font-size:9px;line-height:1.5}
-.loans-table details{margin-top:4px;font-size:9px}
-.loans-table details summary{color:var(--green);cursor:pointer}
-.loans-table a{display:block;color:var(--green);font-size:9px}
-@media(max-width:650px){.checkout-layout{grid-template-columns:1fr}.checkout-book{position:static;display:grid;grid-template-columns:100px 1fr;column-gap:14px;align-items:start}.checkout-book .book-cover{grid-row:span 4;height:140px;margin:0}.checkout-book .eyebrow{align-self:end}.checkout-book h2{margin-top:2px}.checkout-summary{grid-column:2}}
+/* ==========================================================================
+   The Reading Room - Book Covers & 3D Tactile Styling
+   ========================================================================== */
+
+/* Book Cover Frame Container */
+.book-cover-frame {
+  position: relative;
+  width: 100%;
+  height: 250px;
+  border-radius: 12px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  box-shadow: 
+    0 4px 12px rgba(24, 38, 28, 0.08),
+    0 1px 3px rgba(24, 38, 28, 0.04),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.15);
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  background-color: var(--cover-bg, #274334);
+}
+
+.book-card:hover .book-cover-frame {
+  transform: translateY(-4px) scale(1.01);
+  box-shadow: 
+    0 16px 32px -4px rgba(24, 38, 28, 0.18),
+    0 4px 12px rgba(24, 38, 28, 0.06);
+}
+
+/* Spine Crease / 3D Illusion on Book Cover */
+.book-cover-frame::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 14px;
+  width: 3px;
+  background: linear-gradient(90deg, rgba(0, 0, 0, 0.22), rgba(255, 255, 255, 0.18), rgba(0, 0, 0, 0.12));
+  z-index: 3;
+  pointer-events: none;
+}
+
+/* Inner Edge Lighting */
+.book-cover-frame::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 12px;
+  box-shadow: inset 1px 1px 2px rgba(255, 255, 255, 0.3), inset -1px -1px 3px rgba(0, 0, 0, 0.25);
+  pointer-events: none;
+  z-index: 4;
+}
+
+/* Real Open Library Book Cover Image */
+.book-cover-image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+  z-index: 1;
+  transition: transform 0.4s ease;
+}
+
+.book-card:hover .book-cover-image {
+  transform: scale(1.03);
+}
+
+/* When high-res image is loaded, hide fallback elements */
+.book-cover-frame.has-cover-image .fallback-cover {
+  display: none;
+}
+
+/* Fallback Typographic Cover */
+.fallback-cover {
+  position: absolute;
+  inset: 0;
+  padding: 20px 18px 18px 24px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  color: #fffefa;
+  z-index: 2;
+  background-image: 
+    radial-gradient(circle at 90% 10%, rgba(255, 255, 255, 0.12) 0%, transparent 45%),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.08) 0%, rgba(0, 0, 0, 0.18) 100%);
+}
+
+.fallback-spine {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 14px;
+  background: rgba(0, 0, 0, 0.18);
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.fallback-category {
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.82);
+  line-height: 1;
+}
+
+.fallback-title {
+  font-family: var(--font-serif);
+  font-size: 21px;
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: -0.3px;
+  margin: auto 0 10px;
+  color: #ffffff;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.fallback-line {
+  width: 28px;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.5);
+  margin-bottom: 8px;
+}
+
+.fallback-author {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.88);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.fallback-corner-badge {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  font-family: var(--font-mono, monospace);
+  font-size: 9px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.25);
+  color: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(4px);
+}
+
+/* Distinct Cover Color Palettes */
+.cover-palette-0 { --cover-bg: #274836; background: linear-gradient(145deg, #2f5641, #1a3526); }
+.cover-palette-1 { --cover-bg: #8c4228; background: linear-gradient(145deg, #a75234, #6e301b); }
+.cover-palette-2 { --cover-bg: #2b455b; background: linear-gradient(145deg, #375773, #1f3344); }
+.cover-palette-3 { --cover-bg: #8a6a2a; background: linear-gradient(145deg, #a47e33, #6b511d); }
+.cover-palette-4 { --cover-bg: #4f3b60; background: linear-gradient(145deg, #644a7a, #3c2c49); }
+.cover-palette-5 { --cover-bg: #2e5354; background: linear-gradient(145deg, #386768, #203c3d); }
+
+/* Quick View Hover Button on Book Cover */
+.quick-view-btn {
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%) translateY(12px);
+  opacity: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 20px;
+  background: rgba(24, 34, 27, 0.85);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  font-size: 11px;
+  font-weight: 600;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  cursor: pointer;
+  z-index: 5;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+}
+
+.quick-view-btn:hover {
+  background: rgba(24, 34, 27, 0.95);
+  transform: translateX(-50%) translateY(10px) scale(1.03);
+}
+
+.book-card:hover .quick-view-btn {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* Loan Book Thumbnail (in My Loans) */
+.loan-book-thumbnail {
+  position: relative;
+  width: 78px;
+  height: 104px;
+  border-radius: 8px;
+  overflow: hidden;
+  flex-shrink: 0;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
+  background-color: var(--cover-bg, #274836);
+}
+
+.loan-book-thumbnail::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 6px;
+  width: 2px;
+  background: rgba(0, 0, 0, 0.25);
+  z-index: 2;
+}
+
+.thumbnail-fallback {
+  position: absolute;
+  inset: 0;
+  padding: 10px 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: #ffffff;
+}
+
+.thumb-title {
+  font-family: var(--font-serif);
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.2;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.loan-book-thumbnail.has-cover .thumbnail-fallback {
+  display: none;
+}
+
+/* Mini Cover in Admin Table */
+.mini-cover {
+  width: 32px;
+  height: 42px;
+  border-radius: 4px;
+  display: grid;
+  place-items: center;
+  font-size: 14px;
+  flex-shrink: 0;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Summary Cover in Checkout Column */
+.summary-cover-frame {
+  position: relative;
+  width: 100%;
+  height: 220px;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(24, 38, 28, 0.14);
+  background-color: var(--cover-bg, #2b455b);
+  margin-bottom: 20px;
+}
+
+.summary-cover-frame.has-cover .fallback-cover {
+  display: none;
+}

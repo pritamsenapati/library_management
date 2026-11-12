@@ -1,5 +1,180 @@
 {% extends 'base.html' %}
-{% block title %}{{ 'Join the library' if mode == 'signup' else 'Sign in' }}{% endblock %}
+{% block title %}{{ 'Join the Library' if mode == 'signup' else 'Member Sign In' }}{% endblock %}
 {% block content %}
-<section class="auth-page"><div class="auth-art"><span class="eyebrow">A GOOD PLACE TO GET LOST</span><h2>Every book<br>opens a <em>door.</em></h2><p>Come in, find your corner, and discover somewhere new.</p><div class="auth-stack"><div class="stack-book stack-a">A FIELD GUIDE<br>TO WANDERING</div><div class="stack-book stack-b">THE LANGUAGE<br>OF TREES</div><div class="stack-book stack-c">SMALL<br>WONDERS</div><span class="auth-spark">✳</span></div><span class="auth-art-caption">OPEN A BOOK. OPEN A WORLD.</span></div><div class="auth-panel"><div class="auth-form-wrap"><span class="eyebrow">{{ 'YOUR LIBRARY CARD, PLEASE' if mode == 'signup' else 'WELCOME BACK, READER' }}</span><h1>{{ 'Make yourself at home.' if mode == 'signup' else 'Your shelf awaits.' }}</h1><p class="auth-intro">{{ 'Create an account and start borrowing from our collection.' if mode == 'signup' else 'Sign in to pick up where your last story left off.' }}</p><form method="post" class="form-stack"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}">{% if mode == 'signup' %}<label>Your name<input name="name" type="text" autocomplete="name" placeholder="How should we call you?" required value="{{ request.form.get('name', '') }}"></label>{% endif %}<label>Email address<input name="email" type="email" autocomplete="email" placeholder="you@example.com" required value="{{ request.form.get('email', '') }}"></label><label>Password<input name="password" type="password" autocomplete="{{ 'new-password' if mode == 'signup' else 'current-password' }}" placeholder="{{ 'At least 8 characters' if mode == 'signup' else 'Enter your password' }}" minlength="{{ 8 if mode == 'signup' else 1 }}" required></label>{% if mode == 'login' %}<label class="remember-row"><input type="checkbox" name="remember"> Keep me signed in</label>{% endif %}<button class="button auth-submit" type="submit">{{ 'Create my account' if mode == 'signup' else 'Sign in' }} <span>→</span></button></form><p class="auth-switch">{{ 'Already have an account?' if mode == 'signup' else 'New around here?' }} <a href="{{ url_for('login') if mode == 'signup' else url_for('signup') }}">{{ 'Sign in' if mode == 'signup' else 'Join the library' }}</a></p><div class="auth-footnote"><span>✳</span> Free to join. Always room for one more reader.</div></div></div></section>
+<section class="auth-section">
+  <div class="auth-container">
+    <!-- Left Atmospheric Editorial Panel -->
+    <div class="auth-editorial-panel">
+      <div class="editorial-pattern" aria-hidden="true"></div>
+      <div class="editorial-content">
+        <div class="editorial-badge">
+          <span class="badge-dot"></span>
+          <span>THE READING ROOM ARCHIVE</span>
+        </div>
+        <h2 class="editorial-heading">
+          Every book opens a <span class="highlight">new door.</span>
+        </h2>
+        <p class="editorial-sub">
+          Step inside our community library. Keep track of borrowed favorites, reserve new releases, and expand your horizons.
+        </p>
+
+        <!-- Visual Stack of Curated Books -->
+        <div class="auth-book-stack" aria-hidden="true">
+          <div class="stack-spine spine-3">
+            <span class="spine-text">THE ART OF NOTICING</span>
+            <span class="spine-icon">✦</span>
+          </div>
+          <div class="stack-spine spine-2">
+            <span class="spine-text">GROKKING ALGORITHMS</span>
+            <span class="spine-icon">✦</span>
+          </div>
+          <div class="stack-spine spine-1">
+            <span class="spine-text">THE C PROGRAMMING LANGUAGE</span>
+            <span class="spine-icon">✦</span>
+          </div>
+        </div>
+
+        <div class="editorial-perks">
+          <div class="perk-item">
+            <div class="perk-icon">✓</div>
+            <span>Borrow up to 5 books at once</span>
+          </div>
+          <div class="perk-item">
+            <div class="perk-icon">✓</div>
+            <span>Generous 21-day loan periods</span>
+          </div>
+          <div class="perk-item">
+            <div class="perk-icon">✓</div>
+            <span>Zero fees, completely free community access</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Form Card -->
+    <div class="auth-form-panel">
+      <div class="auth-card">
+        <!-- Auth Mode Switcher Tabs -->
+        <div class="auth-tabs" role="tablist">
+          <a href="{{ url_for('login') }}" class="auth-tab {{ 'active' if mode == 'login' else '' }}" role="tab" aria-selected="{{ 'true' if mode == 'login' else 'false' }}">
+            Sign In
+          </a>
+          <a href="{{ url_for('signup') }}" class="auth-tab {{ 'active' if mode == 'signup' else '' }}" role="tab" aria-selected="{{ 'true' if mode == 'signup' else 'false' }}">
+            Create Account
+          </a>
+        </div>
+
+        <div class="auth-header">
+          <h1 class="auth-title">
+            {{ 'Make yourself at home.' if mode == 'signup' else 'Welcome back, reader.' }}
+          </h1>
+          <p class="auth-desc">
+            {{ 'Create your free library card and start exploring.' if mode == 'signup' else 'Sign in to access your borrowed books and account.' }}
+          </p>
+        </div>
+
+        <form method="post" class="auth-form" novalidate id="auth-form">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+          {% if mode == 'signup' %}
+          <div class="form-group">
+            <label for="auth-name" class="form-label">Full Name</label>
+            <div class="input-with-icon">
+              <span class="input-icon" aria-hidden="true">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              </span>
+              <input 
+                id="auth-name" 
+                name="name" 
+                type="text" 
+                autocomplete="name" 
+                placeholder="Eleanor Vance" 
+                required 
+                value="{{ request.form.get('name', '') }}"
+                class="form-control">
+            </div>
+          </div>
+          {% endif %}
+
+          <div class="form-group">
+            <label for="auth-email" class="form-label">Email Address</label>
+            <div class="input-with-icon">
+              <span class="input-icon" aria-hidden="true">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+              </span>
+              <input 
+                id="auth-email" 
+                name="email" 
+                type="email" 
+                autocomplete="email" 
+                placeholder="reader@example.com" 
+                required 
+                value="{{ request.form.get('email', '') }}"
+                class="form-control">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <div class="label-row">
+              <label for="auth-password" class="form-label">Password</label>
+              {% if mode == 'signup' %}
+              <span class="field-hint">Min. 8 characters</span>
+              {% endif %}
+            </div>
+            <div class="input-with-icon input-password-wrap">
+              <span class="input-icon" aria-hidden="true">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              </span>
+              <input 
+                id="auth-password" 
+                name="password" 
+                type="password" 
+                autocomplete="{{ 'new-password' if mode == 'signup' else 'current-password' }}" 
+                placeholder="{{ 'Choose a secure password' if mode == 'signup' else 'Enter your password' }}" 
+                minlength="{{ 8 if mode == 'signup' else 1 }}" 
+                required
+                class="form-control">
+              <button type="button" class="password-toggle-btn" aria-label="Toggle password visibility" tabindex="-1">
+                <svg class="eye-open" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                <svg class="eye-closed" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none;"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+              </button>
+            </div>
+
+            {% if mode == 'signup' %}
+            <div class="password-meter-wrap" id="password-meter" style="display: none;">
+              <div class="meter-bar"><div class="meter-fill" id="meter-fill"></div></div>
+              <span class="meter-text" id="meter-text">Strength: weak</span>
+            </div>
+            {% endif %}
+          </div>
+
+          {% if mode == 'login' %}
+          <div class="form-options-row">
+            <label class="custom-checkbox">
+              <input type="checkbox" name="remember" value="y">
+              <span class="checkbox-box"></span>
+              <span class="checkbox-label">Keep me signed in</span>
+            </label>
+          </div>
+          {% endif %}
+
+          <button class="button button-primary button-full auth-submit-btn" type="submit">
+            <span>{{ 'Create My Account' if mode == 'signup' else 'Sign In to Library' }}</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </button>
+        </form>
+
+        <div class="auth-footer-prompt">
+          {% if mode == 'signup' %}
+          <span>Already registered?</span>
+          <a href="{{ url_for('login') }}" class="accent-link">Sign in here</a>
+          {% else %}
+          <span>New to the library?</span>
+          <a href="{{ url_for('signup') }}" class="accent-link">Create an account for free</a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
 {% endblock %}

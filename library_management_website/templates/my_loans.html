@@ -1,5 +1,196 @@
 {% extends 'base.html' %}
-{% block title %}My books{% endblock %}
+{% block title %}My Bookshelf{% endblock %}
 {% block content %}
-<section class="section-wrap loans-page"><div class="section-heading"><div><span class="eyebrow">YOUR READING LIST</span><h1>My books<span class="heading-period">.</span></h1><p>Everything you’ve borrowed, all in one place.</p></div><a class="button button-outline" href="{{ url_for('index') }}">Discover more books <span>→</span></a></div>{% if loans %}<div class="loan-list">{% for loan in loans %}<article class="loan-card"><div class="loan-cover cover-{{ loop.index0 % 6 }} {{ 'has-cover' if loan.book.isbn else '' }}">{% if loan.book.isbn %}<img class="book-cover-image" src="https://covers.openlibrary.org/b/isbn/{{ loan.book.isbn }}-M.jpg?default=false" alt="Front cover of {{ loan.book.title }}" loading="lazy" onerror="this.parentElement.classList.remove('has-cover');this.remove();">{% endif %}<span>{{ loan.book.title }}</span></div><div class="loan-details"><span class="eyebrow">{{ loan.book.category }}</span><h2>{{ loan.book.title }}</h2><p class="book-author">by {{ loan.book.author }}</p><div class="loan-dates"><span>Borrowed <strong>{{ loan.borrowed_at.strftime('%b %d, %Y') }}</strong></span>{% if loan.status == 'borrowed' %}<span>Due back <strong class="{{ 'overdue' if loan.due_date < today else '' }}">{{ loan.due_date.strftime('%b %d, %Y') }}</strong></span>{% else %}<span>Returned <strong>{{ loan.returned_at.strftime('%b %d, %Y') if loan.returned_at else '—' }}</strong></span>{% endif %}</div></div><div class="loan-status-actions"><span class="status-pill {{ 'status-returned' if loan.status == 'returned' else ('status-overdue' if loan.due_date < today else '') }}">{{ 'Returned' if loan.status == 'returned' else ('Overdue' if loan.due_date < today else 'Reading now') }}</span>{% if loan.status == 'borrowed' %}<form action="{{ url_for('return_book', loan_id=loan.id) }}" method="post"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="button button-outline" type="submit">Return book <span>↗</span></button></form>{% endif %}</div></article>{% endfor %}</div>{% else %}<div class="empty-state"><div class="empty-illustration">▤</div><h3>Your shelf is waiting.</h3><p>Head over to the collection and borrow your first book.</p><a href="{{ url_for('index') }}" class="button">Explore the collection <span>→</span></a></div>{% endif %}</section>
+<section class="loans-page-section">
+  <div class="loans-container">
+    <!-- Page Header -->
+    <div class="loans-page-header">
+      <div class="header-text">
+        <div class="eyebrow-pill">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+          <span>PERSONAL BOOKSHELF</span>
+        </div>
+        <h1 class="page-title">My Borrowed Books</h1>
+        <p class="page-subtitle">Track your current reading, due dates, and borrowing history.</p>
+      </div>
+
+      <div class="header-action">
+        <a class="button button-primary" href="{{ url_for('index') }}">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <span>Browse More Books</span>
+        </a>
+      </div>
+    </div>
+
+    {% set active_loans = loans|selectattr('status', 'equalto', 'borrowed')|list %}
+    {% set returned_loans = loans|selectattr('status', 'equalto', 'returned')|list %}
+    {% set overdue_loans = [] %}
+    {% for loan in active_loans %}
+      {% if loan.due_date < today %}
+        {% set _ = overdue_loans.append(loan) %}
+      {% endif %}
+    {% endfor %}
+
+    <!-- Reader Summary Stats -->
+    <div class="loans-metrics-grid">
+      <div class="loan-metric-card">
+        <div class="metric-icon active-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+        </div>
+        <div class="metric-details">
+          <span class="metric-val">{{ active_loans|length }} <small>/ 5</small></span>
+          <span class="metric-lbl">Active Checkouts</span>
+        </div>
+        <div class="metric-progress-track" title="{{ active_loans|length }} of 5 allowed books checked out">
+          <div class="metric-progress-fill" style="width: {{ (active_loans|length / 5 * 100)|round }}%;"></div>
+        </div>
+      </div>
+
+      <div class="loan-metric-card">
+        <div class="metric-icon {{ 'alert-icon' if overdue_loans|length > 0 else 'cal-icon' }}">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        </div>
+        <div class="metric-details">
+          <span class="metric-val {{ 'text-danger' if overdue_loans|length > 0 else '' }}">{{ overdue_loans|length }}</span>
+          <span class="metric-lbl">Overdue Titles</span>
+        </div>
+      </div>
+
+      <div class="loan-metric-card">
+        <div class="metric-icon return-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <div class="metric-details">
+          <span class="metric-val">{{ returned_loans|length }}</span>
+          <span class="metric-lbl">Returned History</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loan Tabs & Controls -->
+    {% if loans %}
+    <div class="loans-tab-bar">
+      <div class="tab-filters" role="tablist">
+        <button type="button" class="tab-btn active" data-filter="all">All ({{ loans|length }})</button>
+        <button type="button" class="tab-btn" data-filter="borrowed">Currently Reading ({{ active_loans|length }})</button>
+        <button type="button" class="tab-btn" data-filter="returned">Returned ({{ returned_loans|length }})</button>
+      </div>
+    </div>
+
+    <div class="loan-card-stack" id="loan-list">
+      {% for loan in loans %}
+      {% set is_active = loan.status == 'borrowed' %}
+      {% set is_overdue = is_active and loan.due_date < today %}
+      {% set days_left = (loan.due_date - today).days %}
+      
+      <article class="modern-loan-card status-{{ loan.status }} {{ 'is-overdue' if is_overdue else '' }}" data-status="{{ loan.status }}">
+        <!-- Mini 3D Cover Thumbnail -->
+        <div class="loan-book-thumbnail cover-palette-{{ loop.index0 % 6 }} {{ 'has-cover' if loan.book.isbn else '' }}">
+          {% if loan.book.isbn %}
+          <img 
+            class="book-cover-image" 
+            src="https://covers.openlibrary.org/b/isbn/{{ loan.book.isbn }}-M.jpg?default=false" 
+            alt="Cover of {{ loan.book.title }}" 
+            loading="lazy"
+            onerror="this.parentElement.classList.remove('has-cover');this.remove();">
+          {% endif %}
+          <div class="thumbnail-fallback">
+            <span class="thumb-spine"></span>
+            <span class="thumb-title">{{ loan.book.title }}</span>
+          </div>
+        </div>
+
+        <!-- Book Details & Loan Timeline -->
+        <div class="loan-info-col">
+          <div class="loan-meta-row">
+            <span class="category-badge">{{ loan.book.category }}</span>
+            <span class="isbn-meta">ISBN: {{ loan.book.isbn or 'N/A' }}</span>
+          </div>
+
+          <h2 class="loan-book-title">{{ loan.book.title }}</h2>
+          <p class="loan-book-author">by {{ loan.book.author }}</p>
+
+          <!-- Timeline & Progress -->
+          <div class="loan-timeline-box">
+            <div class="timeline-dates">
+              <span class="date-item">
+                <span class="date-lbl">Borrowed:</span>
+                <strong>{{ loan.borrowed_at.strftime('%b %d, %Y') }}</strong>
+              </span>
+
+              {% if is_active %}
+              <span class="date-item {{ 'text-danger' if is_overdue else '' }}">
+                <span class="date-lbl">Due back:</span>
+                <strong>{{ loan.due_date.strftime('%b %d, %Y') }}</strong>
+                {% if is_overdue %}
+                <span class="urgency-tag overdue-tag">Overdue by {{ (today - loan.due_date).days }} day{{ 's' if (today - loan.due_date).days > 1 else '' }}!</span>
+                {% elif days_left == 0 %}
+                <span class="urgency-tag today-tag">Due today!</span>
+                {% elif days_left <= 3 %}
+                <span class="urgency-tag soon-tag">{{ days_left }} days left</span>
+                {% else %}
+                <span class="urgency-tag normal-tag">{{ days_left }} days left</span>
+                {% endif %}
+              </span>
+              {% else %}
+              <span class="date-item text-muted">
+                <span class="date-lbl">Returned on:</span>
+                <strong>{{ loan.returned_at.strftime('%b %d, %Y') if loan.returned_at else '—' }}</strong>
+              </span>
+              {% endif %}
+            </div>
+
+            {% if is_active %}
+            {% set total_loan_days = (loan.due_date - loan.borrowed_at).days %}
+            {% set elapsed_days = (today - loan.borrowed_at).days %}
+            {% set pct = [100, [(elapsed_days / (total_loan_days if total_loan_days > 0 else 21) * 100)|round, 0]|max]|min %}
+            <div class="loan-progress-bar-container">
+              <div class="loan-progress-fill {{ 'progress-danger' if is_overdue else ('progress-warn' if days_left <= 3 else '') }}" style="width: {{ pct }}%;"></div>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Status & Actions Column -->
+        <div class="loan-action-col">
+          <div class="loan-status-badge {{ 'badge-returned' if loan.status == 'returned' else ('badge-overdue' if is_overdue else 'badge-active') }}">
+            <span class="badge-dot-indicator"></span>
+            <span>{{ 'Returned' if loan.status == 'returned' else ('Overdue' if is_overdue else 'Reading Now') }}</span>
+          </div>
+
+          {% if is_active %}
+          <form action="{{ url_for('return_book', loan_id=loan.id) }}" method="post" data-confirm="Return '{{ loan.book.title }}' back to the library?">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button class="button button-outline button-small return-btn" type="submit">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 14 4 9 9 4"/><path d="M20 20v-7a4 4 0 0 0-4-4H4"/></svg>
+              <span>Return Book</span>
+            </button>
+          </form>
+          {% else %}
+          <span class="returned-checkmark">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            <span>Completed</span>
+          </span>
+          {% endif %}
+        </div>
+      </article>
+      {% endfor %}
+    </div>
+
+    {% else %}
+    <!-- Empty State -->
+    <div class="empty-state-card">
+      <div class="empty-icon-box">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+      </div>
+      <h3>Your bookshelf is currently empty</h3>
+      <p>You haven’t checked out any books yet. Explore our shelves and find a great story to start reading today.</p>
+      <a href="{{ url_for('index') }}" class="button button-primary">
+        <span>Explore the Collection</span>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      </a>
+    </div>
+    {% endif %}
+  </div>
+</section>
 {% endblock %}

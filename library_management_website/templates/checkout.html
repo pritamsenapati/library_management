@@ -1,31 +1,171 @@
 {% extends 'base.html' %}
 {% block title %}Borrow {{ book.title }}{% endblock %}
 {% block content %}
-<section class="form-page checkout-page">
-  <a class="back-link" href="{{ url_for('index') }}">← Back to the collection</a>
-  <div class="checkout-layout">
-    <div class="form-card">
-      <span class="eyebrow">ONE QUICK CHECKOUT DETAIL</span>
-      <h1>Before this book goes home with you.</h1>
-      <p class="auth-intro">Please confirm a phone number and contact address for this loan. We’ll save these details with your checkout so the library can reach you about the book.</p>
-      <form method="post" class="form-stack">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-        <label>Contact name<input name="contact_name" autocomplete="name" required maxlength="100" value="{{ request.form.get('contact_name', previous_contact.contact_name if previous_contact else current_user.name) }}"></label>
-        <label>Phone number<input name="phone" type="tel" autocomplete="tel" inputmode="tel" placeholder="+1 555 123 4567" required maxlength="30" value="{{ request.form.get('phone', previous_contact.phone if previous_contact else '') }}"><span class="field-help">Include your country code if applicable.</span></label>
-        <label>Contact address<textarea name="address" autocomplete="street-address" rows="3" placeholder="Street, city, postal code" required maxlength="1000">{{ request.form.get('address', previous_contact.address if previous_contact else '') }}</textarea></label>
-        <p class="privacy-note">These contact details are saved with this loan and are visible to library administrators for checkout support.</p>
-        <button class="button auth-submit" type="submit">Confirm and borrow <span>→</span></button>
-      </form>
-    </div>
-    <aside class="checkout-book">
-      <div class="book-cover cover-2 {{ 'has-cover' if book.isbn else '' }}">
-        {% if book.isbn %}<img class="book-cover-image" src="https://covers.openlibrary.org/b/isbn/{{ book.isbn }}-M.jpg?default=false" alt="Front cover of {{ book.title }}" onerror="this.parentElement.classList.remove('has-cover');this.remove();">{% endif %}
-        <span class="cover-category">{{ book.category }}</span><div class="cover-title">{{ book.title }}</div><div class="cover-rule"></div><div class="cover-author">{{ book.author }}</div>
+<section class="checkout-section">
+  <div class="checkout-container">
+    <div class="checkout-nav-bar">
+      <a class="back-link" href="{{ url_for('index') }}">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+        <span>Back to Collection</span>
+      </a>
+
+      <div class="checkout-steps">
+        <span class="step-num active">1</span>
+        <span class="step-text">Checkout Confirmation</span>
+        <span class="step-div">/</span>
+        <span class="step-num">2</span>
+        <span class="step-text">21-Day Loan Active</span>
       </div>
-      <span class="eyebrow">YOUR CHECKOUT</span>
-      <h2>{{ book.title }}</h2><p>by {{ book.author }}</p>
-      <div class="checkout-summary"><span>Loan period</span><strong>21 days</strong></div>
-    </aside>
+    </div>
+
+    <div class="checkout-grid">
+      <!-- Left: Contact Form -->
+      <div class="checkout-form-card">
+        <div class="form-header">
+          <div class="eyebrow-pill">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <span>CHECKOUT DETAILS</span>
+          </div>
+          <h1 class="checkout-title">Confirm Your Contact Information</h1>
+          <p class="checkout-desc">
+            Please confirm where we can contact you regarding this loan and return reminders. These details are saved for your convenience.
+          </p>
+        </div>
+
+        <form method="post" class="checkout-form" id="checkout-form">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+          <div class="form-group">
+            <label for="contact_name" class="form-label">Borrower / Contact Name</label>
+            <div class="input-with-icon">
+              <span class="input-icon" aria-hidden="true">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              </span>
+              <input 
+                id="contact_name" 
+                name="contact_name" 
+                type="text" 
+                autocomplete="name" 
+                required 
+                maxlength="100" 
+                value="{{ request.form.get('contact_name', previous_contact.contact_name if previous_contact else current_user.name) }}"
+                class="form-control">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="phone" class="form-label">Phone Number</label>
+            <div class="input-with-icon">
+              <span class="input-icon" aria-hidden="true">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+              </span>
+              <input 
+                id="phone" 
+                name="phone" 
+                type="tel" 
+                autocomplete="tel" 
+                inputmode="tel" 
+                placeholder="+1 555 123 4567" 
+                required 
+                maxlength="30" 
+                value="{{ request.form.get('phone', previous_contact.phone if previous_contact else '') }}"
+                class="form-control">
+            </div>
+            <span class="field-hint">Include country and area code if applicable.</span>
+          </div>
+
+          <div class="form-group">
+            <label for="address" class="form-label">Physical Contact Address</label>
+            <div class="input-with-icon textarea-icon-wrap">
+              <span class="input-icon" aria-hidden="true">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              </span>
+              <textarea 
+                id="address" 
+                name="address" 
+                autocomplete="street-address" 
+                rows="3" 
+                placeholder="Apartment, street address, city, and postal code" 
+                required 
+                maxlength="1000"
+                class="form-control">{{ request.form.get('address', previous_contact.address if previous_contact else '') }}</textarea>
+            </div>
+          </div>
+
+          <div class="privacy-notice">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            <span>Your contact details are encrypted and accessed solely by library staff for checkout management.</span>
+          </div>
+
+          <button class="button button-primary button-full button-large" type="submit">
+            <span>Confirm & Borrow for 21 Days</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </button>
+        </form>
+      </div>
+
+      <!-- Right: Book Preview & Loan Policy Summary -->
+      <aside class="checkout-summary-col">
+        <div class="checkout-summary-card">
+          <div class="summary-cover-frame cover-palette-2 {{ 'has-cover' if book.isbn else '' }}">
+            {% if book.isbn %}
+            <img 
+              class="book-cover-image" 
+              src="https://covers.openlibrary.org/b/isbn/{{ book.isbn }}-M.jpg?default=false" 
+              alt="Cover of {{ book.title }}"
+              onerror="this.parentElement.classList.remove('has-cover');this.remove();">
+            {% endif %}
+            <div class="fallback-cover">
+              <div class="fallback-spine"></div>
+              <span class="fallback-category">{{ book.category }}</span>
+              <h4 class="fallback-title">{{ book.title }}</h4>
+              <div class="fallback-line"></div>
+              <div class="fallback-author">{{ book.author }}</div>
+            </div>
+          </div>
+
+          <div class="summary-details">
+            <span class="category-badge">{{ book.category }}</span>
+            <h2 class="summary-title">{{ book.title }}</h2>
+            <p class="summary-author">by {{ book.author }}</p>
+
+            {% if book.description %}
+            <p class="summary-desc">{{ book.description }}</p>
+            {% endif %}
+
+            <div class="loan-spec-list">
+              <div class="loan-spec-item">
+                <span class="spec-label">Loan Duration</span>
+                <strong class="spec-value">21 Days</strong>
+              </div>
+              <div class="loan-spec-item">
+                <span class="spec-label">Borrow Date</span>
+                <span class="spec-value">{{ today.strftime('%b %d, %Y') }}</span>
+              </div>
+              <div class="loan-spec-item highlight-spec">
+                <span class="spec-label">Due Date</span>
+                <strong class="spec-value text-accent">{{ (today + timedelta(days=21)).strftime('%b %d, %Y') if timedelta else 'In 21 days' }}</strong>
+              </div>
+              <div class="loan-spec-item">
+                <span class="spec-label">Remaining Copies</span>
+                <span class="spec-value">{{ book.available_copies }} available</span>
+              </div>
+            </div>
+
+            <div class="checkout-guarantees">
+              <div class="guarantee-line">
+                <span class="check-icon">✓</span>
+                <span>Zero late fees or penalty charges</span>
+              </div>
+              <div class="guarantee-line">
+                <span class="check-icon">✓</span>
+                <span>One-click returns anytime from your bookshelf</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </div>
   </div>
 </section>
 {% endblock %}
